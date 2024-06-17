@@ -15,10 +15,24 @@ import { Margins } from "@utils/margins";
 import { useForceUpdater } from "@utils/react";
 import definePlugin, { OptionType } from "@utils/types";
 import { findByCodeLazy, findByPropsLazy } from "@webpack";
-import { Button, ChannelStore, Forms, SearchableSelect,SelectedChannelStore, TabBar, TextInput, UserStore, UserUtils, useState } from "@webpack/common";
+import {
+    Button,
+    ChannelStore,
+    FluxDispatcher,
+    Forms,
+    SearchableSelect,
+    SelectedChannelStore,
+    TabBar,
+    TextInput,
+    UserStore,
+    UserUtils,
+    useState
+} from "@webpack/common";
 import { Message, User } from "discord-types/general/index.js";
 
-let keywordEntries: Array<{ regex: string, listIds: Array<string>, listType: ListType }> = [];
+import { MultiSelect } from "./MultiSelect";
+
+let keywordEntries: Array<{ regex: string, listIds: Array<string>, listType: ListType, listBehaviour: ListBehaviour[] }> = [];
 let currentUser: User;
 let keywordLog: Array<any> = [];
 
@@ -29,9 +43,9 @@ const KEYWORD_ENTRIES_KEY = "KeywordNotify_keywordEntries";
 const KEYWORD_LOG_KEY = "KeywordNotify_log";
 
 const { createMessageRecord } = findByPropsLazy("createMessageRecord", "updateMessageRecord");
-
+const Notifications = findByPropsLazy("makeTextChatNotification");
 async function addKeywordEntry(updater: () => void) {
-    keywordEntries.push({ regex: "", listIds: [], listType: ListType.BlackList });
+    keywordEntries.push({ regex: "", listIds: [], listType: ListType.BlackList, listBehaviour: allBehaviours });
     await DataStore.set(KEYWORD_ENTRIES_KEY, keywordEntries);
     updater();
 }
@@ -56,6 +70,20 @@ enum ListType {
     Whitelist = "Whitelist"
 }
 
+enum ListBehaviour {
+    Ping = "Ping",
+    Highlight = "Highlight",
+    Notification = "Notification",
+    Inbox = "Inbox"
+}
+
+const allBehaviours = [
+    ListBehaviour.Ping,
+    ListBehaviour.Highlight,
+    ListBehaviour.Notification,
+    ListBehaviour.Inbox
+];
+
 function highlightKeywords(s: string, r: Array<string>) {
     let regex: RegExp;
     try {
@@ -75,10 +103,14 @@ function highlightKeywords(s: string, r: Array<string>) {
         return before;
     }, s), s];
 
-    return parts.map(e => [
-        (<span>{e}</span>),
-        matches!.length ? (<span className="highlight">{matches!.splice(0, 1)[0]}</span>) : []
+    // add the `highlight` class to words that match
+    // otherwise just add a span with the word
+    return parts.map((e, i) => [
+        <span>{e}</span>,
+        matches[i] != null ? <span className="highlight">{matches[i]}</span> : null
     ]);
+
+
 }
 
 function Collapsible({ title, children }) {
@@ -160,7 +192,11 @@ function ListTypeSelector({ listType, setListType }) {
     );
 }
 
-
+function isVanillaNotification(message: Message, channel: string) {
+    if (message.author.id === currentUser.id) return false;
+    if (message.author.bot && !settings.store.ignoreBots) return false;
+    return Notifications.shouldNotify(message, channel);
+}
 function KeywordEntries() {
     const update = useForceUpdater();
     const [values] = useState(keywordEntries);
@@ -183,10 +219,27 @@ function KeywordEntries() {
         update();
     }
 
+    async function setListBehaviour(index: number, value: string[]) {
+        // changes
+        // ...
+        keywordEntries[index].listBehaviour = value.map(e => e as ListBehaviour);
+        console.log(keywordEntries[index].listBehaviour);
+
+        await DataStore.set(KEYWORD_ENTRIES_KEY, keywordEntries);
+        update();
+    }
+
+    const listBehaviourOptions = Object.keys(ListBehaviour).map(key => ({
+        label: key,
+        value: ListBehaviour[key as keyof typeof ListBehaviour],
+    }));
+
     const elements = keywordEntries.map((entry, i) => {
         return (
             <>
-                <Collapsible title={`Keyword Entry ${i + 1}`}>
+                {/*<Collapsible title={`Keyword Entry ${i + 1}`}>*/}
+                {/*Include the regex in () of the title*/}
+                <Collapsible title={`Keyword Entry (${entry.regex.slice(0, 25)})`}>
                     <Flex flexDirection="row">
                         <div style={{ flexGrow: 1 }}>
                             <TextInput
@@ -205,9 +258,21 @@ function KeywordEntries() {
                         </Button>
                     </Flex>
                     <Forms.FormDivider className={Margins.top8 + " " + Margins.bottom8}/>
+                    <Forms.FormTitle tag="h5">Behaviour</Forms.FormTitle>
+                    <Flex flexDirection="row">
+                        <div style={{flexGrow: 1}}>
+                            <MultiSelect
+                                options={listBehaviourOptions}
+                                value={values[i].listBehaviour ?? allBehaviours}
+                                onChange={selectedOptions => setListBehaviour(i, selectedOptions)}
+                                minSelections={1}
+                            />
+                        </div>
+                    </Flex>
+                    <Forms.FormDivider className={Margins.top8 + " " + Margins.bottom8}/>
                     <Forms.FormTitle tag="h5">Whitelist/Blacklist</Forms.FormTitle>
                     <Flex flexDirection="row">
-                        <div style={{ flexGrow: 1 }}>
+                        <div style={{flexGrow: 1}}>
                             <ListedIds listIds={values[i].listIds} setListIds={e => setListIds(i, e)}/>
                         </div>
                     </Flex>
@@ -295,6 +360,11 @@ export default definePlugin({
 
     applyKeywordEntries(m: Message) {
         let matches = false;
+        let shouldAddToLog = false;
+        let shouldPing = false;
+        let shouldNotify = false;
+        let shouldHighlight = false;
+        const guildId = ChannelStore.getChannel(m.channel_id)?.guild_id;
 
         keywordEntries.forEach(entry => {
             if (entry.regex === "") {
@@ -303,10 +373,7 @@ export default definePlugin({
 
             let listed = entry.listIds.some(id => id === m.channel_id || id === m.author.id);
             if (!listed) {
-                const channel = ChannelStore.getChannel(m.channel_id);
-                if (channel != null) {
-                    listed = entry.listIds.some(id => id === channel.guild_id);
-                }
+                listed = entry.listIds.some(id => id === guildId);
             }
 
             const whitelistMode = entry.listType === ListType.Whitelist;
@@ -338,14 +405,72 @@ export default definePlugin({
                     }
                 }
             }
+
+            if (matches) {
+                if (entry.listBehaviour.includes(ListBehaviour.Inbox)) {
+                    shouldAddToLog = true;
+                }
+                if (entry.listBehaviour.includes(ListBehaviour.Ping)) {
+                    shouldPing = true;
+                }
+                if (entry.listBehaviour.includes(ListBehaviour.Notification)) {
+                    shouldNotify = true;
+                }
+                if (entry.listBehaviour.includes(ListBehaviour.Highlight)) {
+                    shouldHighlight = true;
+                }
+            }
         });
 
         if (matches) {
-            // @ts-ignore
-            m.mentions.push(currentUser);
+            // // @ts-ignore
+            // m.mentions.push(currentUser);
+            //
+            // if (m.author.id !== currentUser.id)
+            //     this.addToLog(m);
 
-            if (m.author.id !== currentUser.id)
+            if (shouldAddToLog) {
                 this.addToLog(m);
+            }
+
+            const doesVanillaNotify = isVanillaNotification(m, m.channel_id);
+
+
+            if (!doesVanillaNotify && shouldPing) {
+                // @ts-ignore
+                m.mentions.push(currentUser);
+            } else {
+                if (shouldHighlight) {
+                    m
+                }
+            }
+
+            // if (shouldNotify) {
+            //     // temporarily add a mention to the message and then remove it the next frame
+            //     // @ts-ignore
+            //     m.mentions.push(currentUser);
+            //     if (!doesVanillaNotify) {
+            //         setTimeout(() => {
+            //             // editing this old message makes no sense since the client already has it cached after this.
+            //             // so we have to clear the message cache in that channel
+            //
+            //             // @ts-ignore
+            //             console.log(m.mentions);
+            //             // @ts-ignore
+            //             m.mentions = [];
+            //             m.content += " hiii!";
+            //
+            //             FluxDispatcher.dispatch({
+            //                 type: "MESSAGE_UPDATE",
+            //                 guildId: guildId,
+            //                 message: m
+            //             });
+            //
+            //
+            //         }, 1000);
+            //     }
+            // }
+
         }
     },
 
