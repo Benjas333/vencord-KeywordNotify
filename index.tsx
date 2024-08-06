@@ -301,10 +301,10 @@ export default definePlugin({
     ],
 
     async start() {
-        keywordEntries = await DataStore.get(KEYWORD_ENTRIES_KEY) ?? [];
-        currentUser = UserStore.getCurrentUser();
         this.onUpdate = () => null;
-
+        currentUser = UserStore.getCurrentUser();
+        keywordEntries = await DataStore.get(KEYWORD_ENTRIES_KEY) ?? [];
+        await DataStore.set(KEYWORD_ENTRIES_KEY, keywordEntries);
         (await DataStore.get(KEYWORD_LOG_KEY) ?? []).map(e => JSON.parse(e)).forEach(e => {
             this.addToLog(e);
         });
