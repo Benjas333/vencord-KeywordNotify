@@ -7,7 +7,8 @@
 import "./style.css";
 
 import definePlugin, { OptionType } from "@utils/types";
-import { Button, ChannelStore, Forms, Select, Switch, SelectedChannelStore, TabBar, TextInput, UserStore, UserUtils, useState } from "@webpack/common";
+import { Button, ChannelStore, Forms, Select, Switch, SelectedChannelStore, TabBar, TextInput, Tooltip, UserStore, UserUtils, useState } from "@webpack/common";
+import { classes } from "@utils/misc";
 import { classNameFactory } from "@api/Styles";
 import { DataStore } from "@api/index";
 import { definePluginSettings } from "@api/Settings";
@@ -18,17 +19,23 @@ import { Flex } from "@components/Flex";
 import { Margins } from "@utils/margins";
 import { Message, User } from "discord-types/general/index.js";
 import { useForceUpdater } from "@utils/react";
+import type { PropsWithChildren } from "react";
 
-type KeywordEntry = { regex: string, listIds: Array<string>, listType: ListType, ignoreCase: boolean };
+
+type IconProps = JSX.IntrinsicElements["svg"];
+type KeywordEntry = { regex: string, listIds: Array<string>, listType: ListType, ignoreCase: boolean; };
 
 let keywordEntries: Array<KeywordEntry> = [];
 let currentUser: User;
 let keywordLog: Array<any> = [];
 
-const MenuHeader = findByCodeLazy(".sv)()?(0,");
-const Popout = findByCodeLazy(".loadingMore&&null==");
 const recentMentionsPopoutClass = findByPropsLazy("recentMentionsPopout");
-const createMessageRecord = findByCodeLazy("THREAD_CREATED?[]:(0,");
+const tabClass = findByPropsLazy("tab");
+const buttonClass = findByPropsLazy("size36");
+
+const MenuHeader = findByCodeLazy(".getMessageReminders()).length");
+const Popout = findByCodeLazy("e.get(e.jumpTargetId");
+const createMessageRecord = findByCodeLazy(".createFromServer(", ".isBlockedForMessage", "messageReference:");
 const KEYWORD_ENTRIES_KEY = "KeywordNotify_keywordEntries";
 const KEYWORD_LOG_KEY = "KeywordNotify_log";
 
@@ -59,6 +66,10 @@ enum ListType {
     Whitelist = "Whitelist"
 }
 
+interface BaseIconProps extends IconProps {
+    viewBox: string;
+}
+
 function highlightKeywords(str: string, entries: Array<KeywordEntry>) {
     let regexes: Array<RegExp>;
     try {
@@ -67,7 +78,7 @@ function highlightKeywords(str: string, entries: Array<KeywordEntry>) {
         return [str];
     }
 
-    const matches = regexes.map(r => str.match(r)).flat().filter(e => e != null);
+    const matches = regexes.map(r => str.match(r)).flat().filter(e => e != null) as Array<string>;
     if (matches.length == 0) {
         return [str];
     }
@@ -144,7 +155,7 @@ function ListedIds({ listIds, setListIds }) {
     );
 }
 
-function ListTypeSelector({ listType, setListType }) {
+function ListTypeSelector({ listType, setListType }: { listType: ListType, setListType: (v: ListType) => void; }) {
     return (
         <Select
             options={[
@@ -154,7 +165,6 @@ function ListTypeSelector({ listType, setListType }) {
             placeholder={"Select a list type"}
             isSelected={v => v === listType}
             closeOnSelect={true}
-            value={listType}
             select={setListType}
             serialize={v => v}
         />
@@ -215,14 +225,14 @@ function KeywordEntries() {
                     >
                         Ignore Case
                     </Switch>
-                    <Forms.FormDivider className={[Margins.top8, Margins.bottom8].join(" ") }/>
+                    <Forms.FormDivider className={[Margins.top8, Margins.bottom8].join(" ")}/>
                     <Forms.FormTitle tag="h5">Whitelist/Blacklist</Forms.FormTitle>
                     <Flex flexDirection="row">
                         <div style={{ flexGrow: 1 }}>
                             <ListedIds listIds={values[i].listIds} setListIds={e => setListIds(i, e)}/>
                         </div>
                     </Flex>
-                    <div className={[Margins.top8, Margins.bottom8].join(" ") }/>
+                    <div className={[Margins.top8, Margins.bottom8].join(" ")}/>
                     <Flex flexDirection="row">
                         <Button onClick={() => {
                             values[i].listIds.push("");
@@ -245,6 +255,39 @@ function KeywordEntries() {
     );
 }
 
+function Icon({ height = 24, width = 24, className, children, viewBox, ...svgProps }: PropsWithChildren<BaseIconProps>) {
+    return (
+        <svg
+            className={classes(className, "vc-icon")}
+            role="img"
+            width={width}
+            height={height}
+            viewBox={viewBox}
+            {...svgProps}
+        >
+            {children}
+        </svg>
+    );
+}
+
+// Ideally I would just add this to Icons.tsx, but I cannot as this is a user-plugin :/
+function DoubleCheckmarkIcon(props: IconProps) {
+    return (
+        <Icon
+            {...props}
+            className={classes(props.className, "vc-double-checkmark-icon")}
+            viewBox="0 0 24 24"
+        >
+            <path fill="currentColor"
+                  d="M16.7 8.7a1 1 0 0 0-1.4-1.4l-3.26 3.24a1 1 0 0 0 1.42 1.42L16.7 8.7ZM3.7 11.3a1 1 0 0 0-1.4 1.4l4.5 4.5a1 1 0 0 0 1.4-1.4l-4.5-4.5Z"
+            />
+            <path fill="currentColor"
+                  d="M21.7 9.7a1 1 0 0 0-1.4-1.4L13 15.58l-3.3-3.3a1 1 0 0 0-1.4 1.42l4 4a1 1 0 0 0 1.4 0l8-8Z"
+            />
+        </Icon>
+    );
+}
+
 const settings = definePluginSettings({
     ignoreBots: {
         type: OptionType.BOOLEAN,
@@ -253,13 +296,14 @@ const settings = definePluginSettings({
     },
     keywords: {
         type: OptionType.COMPONENT,
+        description: "Manage keywords",
         component: () => <KeywordEntries/>
     }
 });
 
 export default definePlugin({
     name: "KeywordNotify",
-    authors: [Devs.camila314],
+    authors: [Devs.camila314, Devs.x3rt],
     description: "Sends a notification if a given message matches certain keywords or regexes",
     settings,
     patches: [
@@ -278,10 +322,10 @@ export default definePlugin({
             }
         },
         {
-            find: "location:\"RecentsPopout\"",
+            find: ".X.BOOKMARKS)",
             replacement: {
                 match: /:(\i)===\i\.\i\.MENTIONS\?\(0,.+?setTab:(\i),onJump:(\i),badgeState:\i,closePopout:(\i)/,
-                replace: ": $1 === 5 ? $self.tryKeywordMenu($2, $3, $4) $&"
+                replace: ": $1 === 8 ? $self.tryKeywordMenu($2, $3, $4) $&"
             }
         },
         {
@@ -393,7 +437,7 @@ export default definePlugin({
 
     keywordTabBar() {
         return (
-            <TabBar.Item className="vc-settings-tab-bar-item" id={5}>
+            <TabBar.Item className={classes(tabClass.tab, tabClass.expanded)} id={8}>
                 Keywords
             </TabBar.Item>
         );
@@ -401,7 +445,26 @@ export default definePlugin({
 
     tryKeywordMenu(setTab, onJump, closePopout) {
         const header = (
-            <MenuHeader tab={5} setTab={setTab} closePopout={closePopout} badgeState={{ badgeForYou: false }}/>
+            <MenuHeader tab={8} setTab={setTab} closePopout={closePopout} badgeState={{ badgeForYou: false }} children={
+                <Tooltip text="Clear All">
+                    {({ onMouseLeave, onMouseEnter }) => (
+                        <Button
+                            onMouseLeave={onMouseLeave}
+                            onMouseEnter={onMouseEnter}
+                            look={Button.Looks.BLANK}
+                            size={Button.Sizes.ICON}
+                            onClick={() => {
+                                keywordLog = [];
+                                DataStore.set(KEYWORD_LOG_KEY, []);
+                                this.onUpdate();
+                            }}>
+                            <div className={classes(buttonClass.button, buttonClass.secondary, buttonClass.size32)}>
+                                <DoubleCheckmarkIcon/>
+                            </div>
+                        </Button>
+                    )}
+                </Tooltip>
+            }/>
         );
 
         const channel = ChannelStore.getChannel(SelectedChannelStore.getChannelId());
@@ -431,7 +494,7 @@ export default definePlugin({
         return (
             <>
                 <Popout
-                    className={recentMentionsPopoutClass.recentMentionsPopout}
+                    className={classes(recentMentionsPopoutClass.recentMentionsPopout)}
                     renderHeader={() => header}
                     renderMessage={messageRender}
                     channel={channel}
@@ -441,6 +504,7 @@ export default definePlugin({
                     loadMore={() => null}
                     messages={tempLogs}
                     renderEmptyState={() => null}
+                    canCloseAllMessages={true}
                 />
             </>
         );
