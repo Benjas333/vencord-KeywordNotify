@@ -225,7 +225,6 @@ function KeywordEntries() {
                     >
                         Ignore Case
                     </Switch>
-                    <Forms.FormDivider className={[Margins.top8, Margins.bottom8].join(" ")}/>
                     <Forms.FormTitle tag="h5">Whitelist/Blacklist</Forms.FormTitle>
                     <Flex flexDirection="row">
                         <div style={{ flexGrow: 1 }}>
