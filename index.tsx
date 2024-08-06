@@ -34,7 +34,7 @@ const tabClass = findByPropsLazy("tab");
 const buttonClass = findByPropsLazy("size36");
 
 const MenuHeader = findByCodeLazy(".getMessageReminders()).length");
-const Popout = findByCodeLazy("e.get(e.jumpTargetId");
+const Popout = findByCodeLazy(".Messages.UNBLOCK_TO_JUMP_TITLE", "canCloseAllMessages:");
 const createMessageRecord = findByCodeLazy(".createFromServer(", ".isBlockedForMessage", "messageReference:");
 const KEYWORD_ENTRIES_KEY = "KeywordNotify_keywordEntries";
 const KEYWORD_LOG_KEY = "KeywordNotify_log";
@@ -142,7 +142,7 @@ function ListedIds({ listIds, setListIds }) {
                     look={Button.Looks.BLANK}
                     size={Button.Sizes.ICON}
                     className={cl("delete")}>
-                    <DeleteIcon/>
+                    <DeleteIcon />
                 </Button>
             </Flex>
         );
@@ -212,7 +212,7 @@ function KeywordEntries() {
                             look={Button.Looks.BLANK}
                             size={Button.Sizes.ICON}
                             className={cl("delete")}>
-                            <DeleteIcon/>
+                            <DeleteIcon />
                         </Button>
                     </Flex>
                     <Switch
@@ -228,17 +228,17 @@ function KeywordEntries() {
                     <Forms.FormTitle tag="h5">Whitelist/Blacklist</Forms.FormTitle>
                     <Flex flexDirection="row">
                         <div style={{ flexGrow: 1 }}>
-                            <ListedIds listIds={values[i].listIds} setListIds={e => setListIds(i, e)}/>
+                            <ListedIds listIds={values[i].listIds} setListIds={e => setListIds(i, e)} />
                         </div>
                     </Flex>
-                    <div className={[Margins.top8, Margins.bottom8].join(" ")}/>
+                    <div className={[Margins.top8, Margins.bottom8].join(" ")} />
                     <Flex flexDirection="row">
                         <Button onClick={() => {
                             values[i].listIds.push("");
                             update();
                         }}>Add ID</Button>
                         <div style={{ flexGrow: 1 }}>
-                            <ListTypeSelector listType={values[i].listType} setListType={e => setListType(i, e)}/>
+                            <ListTypeSelector listType={values[i].listType} setListType={e => setListType(i, e)} />
                         </div>
                     </Flex>
                 </Collapsible>
@@ -278,10 +278,10 @@ function DoubleCheckmarkIcon(props: IconProps) {
             viewBox="0 0 24 24"
         >
             <path fill="currentColor"
-                  d="M16.7 8.7a1 1 0 0 0-1.4-1.4l-3.26 3.24a1 1 0 0 0 1.42 1.42L16.7 8.7ZM3.7 11.3a1 1 0 0 0-1.4 1.4l4.5 4.5a1 1 0 0 0 1.4-1.4l-4.5-4.5Z"
+                d="M16.7 8.7a1 1 0 0 0-1.4-1.4l-3.26 3.24a1 1 0 0 0 1.42 1.42L16.7 8.7ZM3.7 11.3a1 1 0 0 0-1.4 1.4l4.5 4.5a1 1 0 0 0 1.4-1.4l-4.5-4.5Z"
             />
             <path fill="currentColor"
-                  d="M21.7 9.7a1 1 0 0 0-1.4-1.4L13 15.58l-3.3-3.3a1 1 0 0 0-1.4 1.42l4 4a1 1 0 0 0 1.4 0l8-8Z"
+                d="M21.7 9.7a1 1 0 0 0-1.4-1.4L13 15.58l-3.3-3.3a1 1 0 0 0-1.4 1.42l4 4a1 1 0 0 0 1.4 0l8-8Z"
             />
         </Icon>
     );
@@ -301,7 +301,7 @@ const settings = definePluginSettings({
     keywords: {
         type: OptionType.COMPONENT,
         description: "Manage keywords",
-        component: () => <KeywordEntries/>
+        component: () => <KeywordEntries />
     }
 });
 
@@ -326,7 +326,7 @@ export default definePlugin({
             }
         },
         {
-            find: ".X.BOOKMARKS)",
+            find: "location:\"RecentsPopout\"})",
             replacement: {
                 match: /:(\i)===\i\.\i\.MENTIONS\?\(0,.+?setTab:(\i),onJump:(\i),badgeState:\i,closePopout:(\i)/,
                 replace: ": $1 === 8 ? $self.tryKeywordMenu($2, $3, $4) $&"
@@ -463,12 +463,12 @@ export default definePlugin({
                                 this.onUpdate();
                             }}>
                             <div className={classes(buttonClass.button, buttonClass.secondary, buttonClass.size32)}>
-                                <DoubleCheckmarkIcon/>
+                                <DoubleCheckmarkIcon />
                             </div>
                         </Button>
                     )}
                 </Tooltip>
-            }/>
+            } />
         );
 
         const channel = ChannelStore.getChannel(SelectedChannelStore.getChannelId());
