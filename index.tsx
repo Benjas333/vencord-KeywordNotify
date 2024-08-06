@@ -315,7 +315,7 @@ export default definePlugin({
 
         for (let entry of keywordEntries) {
             if (entry.regex === "") {
-                return;
+                continue;
             }
 
             let listed = entry.listIds.some(id => id === m.channel_id || id === m.author.id);
@@ -329,28 +329,30 @@ export default definePlugin({
             const whitelistMode = entry.listType === ListType.Whitelist;
 
             if (!whitelistMode && listed) {
-                return;
+                continue;
             }
             if (whitelistMode && !listed) {
-                return;
+                continue;
             }
 
             if (settings.store.ignoreBots && m.author.bot && (!whitelistMode || !entry.listIds.includes(m.author.id))) {
-                return;
+                continue;
             }
 
             const flags = entry.ignoreCase ? "i" : "";
             if (safeMatchesRegex(m.content, entry.regex, flags)) {
                 matches = true;
-            }
-
-            for (const embed of m.embeds as any) {
-                if (safeMatchesRegex(embed.description, entry.regex, flags) || safeMatchesRegex(embed.title, entry.regex, flags)) {
-                    matches = true;
-                } else if (embed.fields != null) {
-                    for (const field of embed.fields as Array<{ name: string, value: string }>) {
-                        if (safeMatchesRegex(field.value, entry.regex, flags) || safeMatchesRegex(field.name, entry.regex, flags)) {
-                            matches = true;
+            } else {
+                for (const embed of m.embeds as any) {
+                    if (safeMatchesRegex(embed.description, entry.regex, flags) || safeMatchesRegex(embed.title, entry.regex, flags)) {
+                        matches = true;
+                        break;
+                    } else if (embed.fields != null) {
+                        for (const field of embed.fields as Array<{ name: string, value: string; }>) {
+                            if (safeMatchesRegex(field.value, entry.regex, flags) || safeMatchesRegex(field.name, entry.regex, flags)) {
+                                matches = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -358,7 +360,8 @@ export default definePlugin({
         }
 
         if (matches) {
-            m.mentions.push(currentUser);
+            // @ts-ignore
+            m.mentions.push({ id: currentUser.id });
 
             if (m.author.id !== currentUser.id)
                 this.addToLog(m);
