@@ -293,6 +293,11 @@ const settings = definePluginSettings({
         description: "Ignore messages from bots",
         default: true
     },
+    amountToKeep: {
+        type: OptionType.NUMBER,
+        description: "Amount of messages to keep in the log",
+        default: 50
+    },
     keywords: {
         type: OptionType.COMPONENT,
         description: "Manage keywords",
@@ -423,7 +428,7 @@ export default definePlugin({
         keywordLog.push(thing);
         keywordLog.sort((a, b) => b.timestamp - a.timestamp);
 
-        if (keywordLog.length > 50)
+        if (keywordLog.length > settings.store.amountToKeep)
             keywordLog.pop();
 
         this.onUpdate();
