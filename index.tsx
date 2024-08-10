@@ -7,13 +7,12 @@
 import "./style.css";
 
 import definePlugin, { OptionType } from "@utils/types";
-import { Button, ChannelStore, Forms, Select, Switch, SelectedChannelStore, TabBar, TextInput, Tooltip, UserStore, UserUtils, useState } from "@webpack/common";
+import { Button, ChannelStore, Forms, Select, Switch, SelectedChannelStore, TabBar, TextInput, Tooltip, UserStore, useState } from "@webpack/common";
 import { classes } from "@utils/misc";
 import { classNameFactory } from "@api/Styles";
 import { DataStore } from "@api/index";
 import { definePluginSettings } from "@api/Settings";
 import { DeleteIcon } from "@components/Icons";
-import { Devs } from "@utils/constants";
 import { findByCodeLazy, findByPropsLazy } from "@webpack";
 import { Flex } from "@components/Flex";
 import { Margins } from "@utils/margins";
@@ -271,6 +270,7 @@ function Icon({ height = 24, width = 24, className, children, viewBox, ...svgPro
 
 // Ideally I would just add this to Icons.tsx, but I cannot as this is a user-plugin :/
 function DoubleCheckmarkIcon(props: IconProps) {
+    // noinspection TypeScriptValidateTypes
     return (
         <Icon
             {...props}
@@ -307,7 +307,7 @@ const settings = definePluginSettings({
 
 export default definePlugin({
     name: "KeywordNotify",
-    authors: [Devs.camila314, Devs.x3rt],
+    authors: [{ name: "camila314", id: 738592270617542716n }, { name: "x3rt", id: 131602100332396544n }],
     description: "Sends a notification if a given message matches certain keywords or regexes",
     settings,
     patches: [
