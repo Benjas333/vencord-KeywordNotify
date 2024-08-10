@@ -428,8 +428,9 @@ export default definePlugin({
         keywordLog.push(thing);
         keywordLog.sort((a, b) => b.timestamp - a.timestamp);
 
-        if (keywordLog.length > settings.store.amountToKeep)
+        while (keywordLog.length > settings.store.amountToKeep) {
             keywordLog.pop();
+        }
 
         this.onUpdate();
     },
