@@ -516,7 +516,7 @@ export default definePlugin({
     },
 
     modify(e) {
-        if (e.type === "MESSAGE_CREATE") {
+        if (e.type === "MESSAGE_CREATE" || e.type === "MESSAGE_UPDATE") {
             this.applyKeywordEntries(e.message);
         } else if (e.type === "LOAD_MESSAGES_SUCCESS") {
             for (let msg = 0; msg < e.messages.length; ++msg) {
