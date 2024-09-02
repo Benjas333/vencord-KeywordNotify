@@ -7,7 +7,7 @@
 import "./style.css";
 
 import definePlugin, { OptionType } from "@utils/types";
-import { Button, ChannelStore, Forms, Select, Switch, SelectedChannelStore, TabBar, TextInput, Tooltip, UserStore, useState } from "@webpack/common";
+import { Button, ChannelStore, FluxDispatcher, Forms, Select, Switch, SelectedChannelStore, TabBar, TextInput, Tooltip, UserStore, useState } from "@webpack/common";
 import { classes } from "@utils/misc";
 import { classNameFactory } from "@api/Styles";
 import { DataStore } from "@api/index";
@@ -27,6 +27,8 @@ type KeywordEntry = { regex: string, listIds: Array<string>, listType: ListType,
 let keywordEntries: Array<KeywordEntry> = [];
 let currentUser: User;
 let keywordLog: Array<any> = [];
+let interceptor: (e: any) => void;
+
 
 const recentMentionsPopoutClass = findByPropsLazy("recentMentionsPopout");
 const tabClass = findByPropsLazy("tab");
@@ -78,7 +80,7 @@ function highlightKeywords(str: string, entries: Array<KeywordEntry>) {
     }
 
     const matches = regexes.map(r => str.match(r)).flat().filter(e => e != null) as Array<string>;
-    if (matches.length == 0) {
+    if (matches.length === 0) {
         return [str];
     }
 
@@ -312,13 +314,6 @@ export default definePlugin({
     settings,
     patches: [
         {
-            find: "Dispatch.dispatch(...) called without an action type",
-            replacement: {
-                match: /}_dispatch\((\i),\i\){/,
-                replace: "$&$1=$self.modify($1);"
-            }
-        },
-        {
             find: "Messages.UNREADS_TAB_LABEL}",
             replacement: {
                 match: /\i\?\(0,\i\.jsxs\)\(\i\.TabBar\.Item/,
@@ -356,12 +351,23 @@ export default definePlugin({
         (await DataStore.get(KEYWORD_LOG_KEY) ?? []).map(e => JSON.parse(e)).forEach(e => {
             this.addToLog(e);
         });
+
+        interceptor = (e: any) => {
+            return this.modify(e);
+        };
+        FluxDispatcher.addInterceptor(interceptor);
+    },
+    stop() {
+        const index = FluxDispatcher._interceptors.indexOf(interceptor);
+        if (index > -1) {
+            FluxDispatcher._interceptors.splice(index, 1);
+        }
     },
 
     applyKeywordEntries(m: Message) {
         let matches = false;
 
-        for (let entry of keywordEntries) {
+        for (const entry of keywordEntries) {
             if (entry.regex === "") {
                 continue;
             }
@@ -523,6 +529,5 @@ export default definePlugin({
                 this.applyKeywordEntries(e.messages[msg]);
             }
         }
-        return e;
     }
 });
