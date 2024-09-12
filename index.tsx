@@ -31,10 +31,10 @@ let interceptor: (e: any) => void;
 
 
 const recentMentionsPopoutClass = findByPropsLazy("recentMentionsPopout");
-const tabClass = findByPropsLazy("tab");
+const tabClass = findByPropsLazy("inboxTitle", "tab");
 const buttonClass = findByPropsLazy("size36");
 
-const MenuHeader = findByCodeLazy(".getMessageReminders()).length");
+const MenuHeader = findByCodeLazy(".getUnseenInviteCount())");
 const Popout = findByCodeLazy(".Messages.UNBLOCK_TO_JUMP_TITLE", "canCloseAllMessages:");
 const createMessageRecord = findByCodeLazy(".createFromServer(", ".isBlockedForMessage", "messageReference:");
 const KEYWORD_ENTRIES_KEY = "KeywordNotify_keywordEntries";
