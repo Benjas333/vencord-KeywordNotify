@@ -278,6 +278,8 @@ function DoubleCheckmarkIcon(props: IconProps) {
             {...props}
             className={classes(props.className, "vc-double-checkmark-icon")}
             viewBox="0 0 24 24"
+            width={16}
+            height={16}
         >
             <path fill="currentColor"
                 d="M16.7 8.7a1 1 0 0 0-1.4-1.4l-3.26 3.24a1 1 0 0 0 1.42 1.42L16.7 8.7ZM3.7 11.3a1 1 0 0 0-1.4 1.4l4.5 4.5a1 1 0 0 0 1.4-1.4l-4.5-4.5Z"
@@ -459,20 +461,16 @@ export default definePlugin({
             <MenuHeader tab={8} setTab={setTab} closePopout={closePopout} badgeState={{ badgeForYou: false }} children={
                 <Tooltip text="Clear All">
                     {({ onMouseLeave, onMouseEnter }) => (
-                        <Button
+                        <div className={classes(tabClass.controlButton, buttonClass.button, buttonClass.tertiary, buttonClass.size32)}
                             onMouseLeave={onMouseLeave}
                             onMouseEnter={onMouseEnter}
-                            look={Button.Looks.BLANK}
-                            size={Button.Sizes.ICON}
                             onClick={() => {
                                 keywordLog = [];
                                 DataStore.set(KEYWORD_LOG_KEY, []);
                                 this.onUpdate();
                             }}>
-                            <div className={classes(buttonClass.button, buttonClass.secondary, buttonClass.size32)}>
-                                <DoubleCheckmarkIcon />
-                            </div>
-                        </Button>
+                            <DoubleCheckmarkIcon />
+                        </div>
                     )}
                 </Tooltip>
             } />
