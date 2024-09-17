@@ -6,26 +6,39 @@
 
 import "./style.css";
 
-import definePlugin, { OptionType } from "@utils/types";
-import { Button, ChannelStore, FluxDispatcher, Forms, Select, Switch, SelectedChannelStore, TabBar, TextInput, Tooltip, UserStore, useState } from "@webpack/common";
-import { classes } from "@utils/misc";
-import { classNameFactory } from "@api/Styles";
 import { DataStore } from "@api/index";
 import { definePluginSettings } from "@api/Settings";
-import { DeleteIcon } from "@components/Icons";
-import { findByCodeLazy, findByPropsLazy } from "@webpack";
+import { classNameFactory } from "@api/Styles";
 import { Flex } from "@components/Flex";
+import { DeleteIcon } from "@components/Icons";
 import { Margins } from "@utils/margins";
-import { Message, User } from "discord-types/general/index.js";
+import { classes } from "@utils/misc";
 import { useForceUpdater } from "@utils/react";
+import definePlugin, { OptionType } from "@utils/types";
+import { findByCodeLazy, findByPropsLazy } from "@webpack";
+import {
+    Button,
+    ChannelStore,
+    FluxDispatcher,
+    Forms,
+    Select,
+    SelectedChannelStore,
+    Switch,
+    TabBar,
+    TextInput,
+    Tooltip,
+    UserStore,
+    useState
+} from "@webpack/common";
+import { Message, User } from "discord-types/general/index.js";
 import type { PropsWithChildren } from "react";
 
 
 type IconProps = JSX.IntrinsicElements["svg"];
 type KeywordEntry = { regex: string, listIds: Array<string>, listType: ListType, ignoreCase: boolean; };
 
-let keywordEntries: Array<KeywordEntry> = [];
 let currentUser: User;
+let keywordEntries: Array<KeywordEntry> = [];
 let keywordLog: Array<any> = [];
 let interceptor: (e: any) => void;
 
@@ -104,7 +117,11 @@ function Collapsible({ title, children }) {
                 size={Button.Sizes.ICON}
                 className={cl("collapsible")}>
                 <div style={{ display: "flex", alignItems: "center" }}>
-                    <div style={{ marginLeft: "auto", color: "var(--text-muted)", paddingRight: "5px" }}>{isOpen ? "▼" : "▶"}</div>
+                    <div style={{
+                        marginLeft: "auto",
+                        color: "var(--text-muted)",
+                        paddingRight: "5px"
+                    }}>{isOpen ? "▼" : "▶"}</div>
                     <Forms.FormTitle tag="h4">{title}</Forms.FormTitle>
                 </div>
             </Button>
@@ -118,7 +135,7 @@ function ListedIds({ listIds, setListIds }) {
     const [values] = useState(listIds);
 
     async function onChange(e: string, index: number) {
-        values[index] = e;
+        values[index] = e.trim();
         setListIds(values);
         update();
     }
@@ -143,7 +160,7 @@ function ListedIds({ listIds, setListIds }) {
                     look={Button.Looks.BLANK}
                     size={Button.Sizes.ICON}
                     className={cl("delete")}>
-                    <DeleteIcon />
+                    <DeleteIcon/>
                 </Button>
             </Flex>
         );
@@ -213,7 +230,7 @@ function KeywordEntries() {
                             look={Button.Looks.BLANK}
                             size={Button.Sizes.ICON}
                             className={cl("delete")}>
-                            <DeleteIcon />
+                            <DeleteIcon/>
                         </Button>
                     </Flex>
                     <Switch
@@ -229,17 +246,17 @@ function KeywordEntries() {
                     <Forms.FormTitle tag="h5">Whitelist/Blacklist</Forms.FormTitle>
                     <Flex flexDirection="row">
                         <div style={{ flexGrow: 1 }}>
-                            <ListedIds listIds={values[i].listIds} setListIds={e => setListIds(i, e)} />
+                            <ListedIds listIds={values[i].listIds} setListIds={e => setListIds(i, e)}/>
                         </div>
                     </Flex>
-                    <div className={[Margins.top8, Margins.bottom8].join(" ")} />
+                    <div className={[Margins.top8, Margins.bottom8].join(" ")}/>
                     <Flex flexDirection="row">
                         <Button onClick={() => {
                             values[i].listIds.push("");
                             update();
                         }}>Add ID</Button>
                         <div style={{ flexGrow: 1 }}>
-                            <ListTypeSelector listType={values[i].listType} setListType={e => setListType(i, e)} />
+                            <ListTypeSelector listType={values[i].listType} setListType={e => setListType(i, e)}/>
                         </div>
                     </Flex>
                 </Collapsible>
@@ -255,7 +272,14 @@ function KeywordEntries() {
     );
 }
 
-function Icon({ height = 24, width = 24, className, children, viewBox, ...svgProps }: PropsWithChildren<BaseIconProps>) {
+function Icon({
+    height = 24,
+    width = 24,
+    className,
+    children,
+    viewBox,
+    ...svgProps
+}: PropsWithChildren<BaseIconProps>) {
     return (
         <svg
             className={classes(className, "vc-icon")}
@@ -282,10 +306,10 @@ function DoubleCheckmarkIcon(props: IconProps) {
             height={16}
         >
             <path fill="currentColor"
-                d="M16.7 8.7a1 1 0 0 0-1.4-1.4l-3.26 3.24a1 1 0 0 0 1.42 1.42L16.7 8.7ZM3.7 11.3a1 1 0 0 0-1.4 1.4l4.5 4.5a1 1 0 0 0 1.4-1.4l-4.5-4.5Z"
+                  d="M16.7 8.7a1 1 0 0 0-1.4-1.4l-3.26 3.24a1 1 0 0 0 1.42 1.42L16.7 8.7ZM3.7 11.3a1 1 0 0 0-1.4 1.4l4.5 4.5a1 1 0 0 0 1.4-1.4l-4.5-4.5Z"
             />
             <path fill="currentColor"
-                d="M21.7 9.7a1 1 0 0 0-1.4-1.4L13 15.58l-3.3-3.3a1 1 0 0 0-1.4 1.42l4 4a1 1 0 0 0 1.4 0l8-8Z"
+                  d="M21.7 9.7a1 1 0 0 0-1.4-1.4L13 15.58l-3.3-3.3a1 1 0 0 0-1.4 1.42l4 4a1 1 0 0 0 1.4 0l8-8Z"
             />
         </Icon>
     );
@@ -305,7 +329,7 @@ const settings = definePluginSettings({
     keywords: {
         type: OptionType.COMPONENT,
         description: "Manage keywords",
-        component: () => <KeywordEntries />
+        component: () => <KeywordEntries/>
     }
 });
 
@@ -351,7 +375,11 @@ export default definePlugin({
         keywordEntries = await DataStore.get(KEYWORD_ENTRIES_KEY) ?? [];
         await DataStore.set(KEYWORD_ENTRIES_KEY, keywordEntries);
         (await DataStore.get(KEYWORD_LOG_KEY) ?? []).map(e => JSON.parse(e)).forEach(e => {
-            this.addToLog(e);
+            try {
+                this.addToLog(e);
+            } catch (err) {
+                console.error(err);
+            }
         });
 
         interceptor = (e: any) => {
@@ -374,11 +402,11 @@ export default definePlugin({
                 continue;
             }
 
-            let listed = entry.listIds.some(id => id === m.channel_id || id === m.author.id);
+            let listed = entry.listIds.some(id => id.trim() === m.channel_id || id === m.author.id);
             if (!listed) {
                 const channel = ChannelStore.getChannel(m.channel_id);
                 if (channel != null) {
-                    listed = entry.listIds.some(id => id === channel.guild_id);
+                    listed = entry.listIds.some(id => id.trim() === channel.guild_id);
                 }
             }
 
@@ -428,11 +456,18 @@ export default definePlugin({
         if (m == null || keywordLog.some(e => e.id === m.id))
             return;
 
+        let thing: any;
+        try {
+            thing = createMessageRecord(m);
+        } catch (err) {
+            console.error(err);
+            return;
+        }
+
         DataStore.get(KEYWORD_LOG_KEY).then(log => {
             DataStore.set(KEYWORD_LOG_KEY, [...log, JSON.stringify(m)]);
         });
 
-        const thing = createMessageRecord(m);
         keywordLog.push(thing);
         keywordLog.sort((a, b) => b.timestamp - a.timestamp);
 
@@ -461,7 +496,8 @@ export default definePlugin({
             <MenuHeader tab={8} setTab={setTab} closePopout={closePopout} badgeState={{ badgeForYou: false }} children={
                 <Tooltip text="Clear All">
                     {({ onMouseLeave, onMouseEnter }) => (
-                        <div className={classes(tabClass.controlButton, buttonClass.button, buttonClass.tertiary, buttonClass.size32)}
+                        <div
+                            className={classes(tabClass.controlButton, buttonClass.button, buttonClass.tertiary, buttonClass.size32)}
                             onMouseLeave={onMouseLeave}
                             onMouseEnter={onMouseEnter}
                             onClick={() => {
@@ -469,11 +505,11 @@ export default definePlugin({
                                 DataStore.set(KEYWORD_LOG_KEY, []);
                                 this.onUpdate();
                             }}>
-                            <DoubleCheckmarkIcon />
+                            <DoubleCheckmarkIcon/>
                         </div>
                     )}
                 </Tooltip>
-            } />
+            }/>
         );
 
         const channel = ChannelStore.getChannel(SelectedChannelStore.getChannelId());
