@@ -30,14 +30,13 @@ import {
     UserStore,
     useState
 } from "@webpack/common";
-import { Message, User } from "discord-types/general/index.js";
+import { Message } from "discord-types/general/index.js";
 import type { PropsWithChildren } from "react";
 
 
 type IconProps = JSX.IntrinsicElements["svg"];
 type KeywordEntry = { regex: string, listIds: Array<string>, listType: ListType, ignoreCase: boolean; };
 
-let currentUser: User;
 let keywordEntries: Array<KeywordEntry> = [];
 let keywordLog: Array<any> = [];
 let interceptor: (e: any) => void;
@@ -371,7 +370,6 @@ export default definePlugin({
 
     async start() {
         this.onUpdate = () => null;
-        currentUser = UserStore.getCurrentUser();
         keywordEntries = await DataStore.get(KEYWORD_ENTRIES_KEY) ?? [];
         await DataStore.set(KEYWORD_ENTRIES_KEY, keywordEntries);
         (await DataStore.get(KEYWORD_LOG_KEY) ?? []).map(e => JSON.parse(e)).forEach(e => {
@@ -444,11 +442,15 @@ export default definePlugin({
         }
 
         if (matches) {
-            // @ts-ignore
-            m.mentions.push({ id: currentUser.id });
+            const id = UserStore.getCurrentUser()?.id;
+            if (id != null) {
+                // @ts-ignore
+                m.mentions.push({ id: id });
+            }
 
-            if (m.author.id !== currentUser.id)
+            if (m.author.id !== id) {
                 this.addToLog(m);
+            }
         }
     },
 
@@ -460,7 +462,6 @@ export default definePlugin({
         try {
             thing = createMessageRecord(m);
         } catch (err) {
-            console.error(err);
             return;
         }
 
