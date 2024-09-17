@@ -30,13 +30,14 @@ import {
     UserStore,
     useState
 } from "@webpack/common";
-import { Message } from "discord-types/general/index.js";
+import { Message, User } from "discord-types/general/index.js";
 import type { PropsWithChildren } from "react";
 
 
 type IconProps = JSX.IntrinsicElements["svg"];
 type KeywordEntry = { regex: string, listIds: Array<string>, listType: ListType, ignoreCase: boolean; };
 
+let currentUser: User;
 let keywordEntries: Array<KeywordEntry> = [];
 let keywordLog: Array<any> = [];
 let interceptor: (e: any) => void;
@@ -370,10 +371,15 @@ export default definePlugin({
 
     async start() {
         this.onUpdate = () => null;
+        currentUser = UserStore.getCurrentUser();
         keywordEntries = await DataStore.get(KEYWORD_ENTRIES_KEY) ?? [];
         await DataStore.set(KEYWORD_ENTRIES_KEY, keywordEntries);
         (await DataStore.get(KEYWORD_LOG_KEY) ?? []).map(e => JSON.parse(e)).forEach(e => {
-            this.addToLog(e);
+            try {
+                this.addToLog(e);
+            } catch (err) {
+                console.error(err);
+            }
         });
 
         interceptor = (e: any) => {
@@ -438,16 +444,11 @@ export default definePlugin({
         }
 
         if (matches) {
-            const id = UserStore.getCurrentUser()?.id;
-            if (id != null) {
-                // @ts-ignore
-                m.mentions.push({ id: id });
-            } else {
-                console.log("Current user is null");
-            }
-            if (m.author.id !== id) {
+            // @ts-ignore
+            m.mentions.push({ id: currentUser.id });
+
+            if (m.author.id !== currentUser.id)
                 this.addToLog(m);
-            }
         }
     },
 
@@ -455,11 +456,18 @@ export default definePlugin({
         if (m == null || keywordLog.some(e => e.id === m.id))
             return;
 
+        let thing: any;
+        try {
+            thing = createMessageRecord(m);
+        } catch (err) {
+            console.error(err);
+            return;
+        }
+
         DataStore.get(KEYWORD_LOG_KEY).then(log => {
             DataStore.set(KEYWORD_LOG_KEY, [...log, JSON.stringify(m)]);
         });
 
-        const thing = createMessageRecord(m);
         keywordLog.push(thing);
         keywordLog.sort((a, b) => b.timestamp - a.timestamp);
 
