@@ -449,11 +449,26 @@ export default definePlugin({
             }
 
             if (m.author.id !== id) {
+                this.storeMessage(m);
                 this.addToLog(m);
             }
         }
     },
+    storeMessage(m: Message) {
+        if (m == null)
+            return;
 
+        DataStore.get(KEYWORD_LOG_KEY).then(log => {
+            log = log ? log.map((e: string) => JSON.parse(e)) : [];
+
+            log.push(m);
+            if (log.length > settings.store.amountToKeep) {
+                log = log.slice(-settings.store.amountToKeep);
+            }
+
+            DataStore.set(KEYWORD_LOG_KEY, log.map(e => JSON.stringify(e)));
+        });
+    },
     addToLog(m: Message) {
         if (m == null || keywordLog.some(e => e.id === m.id))
             return;
@@ -464,10 +479,6 @@ export default definePlugin({
         } catch (err) {
             return;
         }
-
-        DataStore.get(KEYWORD_LOG_KEY).then(log => {
-            DataStore.set(KEYWORD_LOG_KEY, [...log, JSON.stringify(m)]);
-        });
 
         keywordLog.push(thing);
         keywordLog.sort((a, b) => b.timestamp - a.timestamp);
