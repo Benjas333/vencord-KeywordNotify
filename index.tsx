@@ -211,6 +211,12 @@ function KeywordEntries() {
         update();
     }
 
+    async function setIgnoreCase(index: number, value: boolean) {
+        keywordEntries[index].ignoreCase = value;
+        await DataStore.set(KEYWORD_ENTRIES_KEY, keywordEntries);
+        update();
+    }
+
     const elements = keywordEntries.map((entry, i) => {
         return (
             <>
@@ -235,8 +241,7 @@ function KeywordEntries() {
                     <Switch
                         value={values[i].ignoreCase}
                         onChange={() => {
-                            values[i].ignoreCase = !values[i].ignoreCase;
-                            update();
+                            setIgnoreCase(i, !values[i].ignoreCase);
                         }}
                         style={{ marginTop: "0.5em", marginRight: "40px" }}
                     >
