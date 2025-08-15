@@ -15,6 +15,7 @@ import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
 import { useForceUpdater } from "@utils/react";
 import definePlugin, { OptionType } from "@utils/types";
+import { Message } from "@vencord/discord-types";
 import { findByCodeLazy, findByPropsLazy } from "@webpack";
 import {
     Button,
@@ -30,7 +31,6 @@ import {
     UserStore,
     useState
 } from "@webpack/common";
-import { Message } from "discord-types/general/index.js";
 import type { PropsWithChildren } from "react";
 
 
@@ -345,16 +345,22 @@ export default definePlugin({
     patches: [
         {
             find: "#{intl::UNREADS_TAB_LABEL})}",
-            replacement: {
-                match: /,(\i\?\(0,\i\.jsxs\)\(\i\.\i\i\.Item)/,
-                replace: ",$self.keywordTabBar()$&"
-            }
+            replacement: [
+                {
+                    match: /,(\i\?\(0,\i\.jsxs\)\(\i\.\i\i\.Item)/,
+                    replace: ",$self.keywordTabBar()$&"
+                },
+                {
+                    match: /:(\i)===\i\.\i\.MENTIONS\?/,
+                    replace: ": $1 === 8 ? $self.keywordClearButton() $&"
+                }
+            ]
         },
         {
             find: "location:\"RecentsPopout\"});",
             replacement: {
-                match: /:(\i)===\i\.\i\.MENTIONS\?\(0,.+?setTab:(\i),onJump:(\i),badgeState:\i,closePopout:(\i)/,
-                replace: ": $1 === 8 ? $self.tryKeywordMenu($2, $3, $4) $&"
+                match: /:(\i)===\i\.\i\.MENTIONS\?\(0,.+?onJump:(\i)}\)/,
+                replace: ": $1 === 8 ? $self.tryKeywordMenu($2) $&"
             }
         },
         {
@@ -507,27 +513,27 @@ export default definePlugin({
         );
     },
 
-    tryKeywordMenu(setTab, onJump, closePopout) {
-        const header = (
-            <MenuHeader tab={8} setTab={setTab} closePopout={closePopout} badgeState={{ badgeForYou: false }} children={
-                <Tooltip text="Clear All">
-                    {({ onMouseLeave, onMouseEnter }) => (
-                        <div
-                            className={classes(tabClass.controlButton, buttonClass.button, buttonClass.tertiary, buttonClass.size32)}
-                            onMouseLeave={onMouseLeave}
-                            onMouseEnter={onMouseEnter}
-                            onClick={() => {
-                                keywordLog = [];
-                                DataStore.set(KEYWORD_LOG_KEY, []);
-                                this.onUpdate();
-                            }}>
-                            <DoubleCheckmarkIcon/>
-                        </div>
-                    )}
-                </Tooltip>
-            }/>
+    keywordClearButton() {
+        return (
+            <Tooltip text="Clear All">
+                {({ onMouseLeave, onMouseEnter }) => (
+                    <div
+                        className={classes(tabClass.controlButton, buttonClass.button, buttonClass.tertiary, buttonClass.size32)}
+                        onMouseLeave={onMouseLeave}
+                        onMouseEnter={onMouseEnter}
+                        onClick={() => {
+                            keywordLog = [];
+                            DataStore.set(KEYWORD_LOG_KEY, []);
+                            this.onUpdate();
+                        }}>
+                        <DoubleCheckmarkIcon/>
+                    </div>
+                )}
+            </Tooltip>
         );
+    },
 
+    tryKeywordMenu(onJump) {
         const channel = ChannelStore.getChannel(SelectedChannelStore.getChannelId());
 
         const [tempLogs, setKeywordLog] = useState(keywordLog);
@@ -556,7 +562,7 @@ export default definePlugin({
             <>
                 <Popout
                     className={classes(recentMentionsPopoutClass.recentMentionsPopout)}
-                    renderHeader={() => header}
+                    renderHeader={() => null}
                     renderMessage={messageRender}
                     channel={channel}
                     onJump={onJump}
