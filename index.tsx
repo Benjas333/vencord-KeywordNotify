@@ -45,7 +45,7 @@ let interceptor: (e: any) => void;
 const recentMentionsPopoutClass = findByPropsLazy("recentMentionsPopout");
 const tabClass = findByPropsLazy("inboxTitle", "tab");
 const sizeClass = findByPropsLazy("size36");
-const buttonClass = findByPropsLazy("button", "rounded");
+// const buttonClass = findByPropsLazy("button", "rounded");
 
 const MenuHeader = findByCodeLazy(".getUnseenInviteCount())");
 const Popout = findByCodeLazy("getProTip", "canCloseAllMessages:");
@@ -480,6 +480,15 @@ export default definePlugin({
             DataStore.set(KEYWORD_LOG_KEY, log.map(e => JSON.stringify(e)));
         });
     },
+    // discardMessage(id: string) {
+    //     DataStore.get(KEYWORD_LOG_KEY).then((log: string[]) => {
+    //         let parsed_logs: Message[] = log ? log.map(e => JSON.parse(e)) : [];
+
+    //         parsed_logs = parsed_logs.filter(msg => msg.id !== id);
+
+    //         DataStore.set(KEYWORD_LOG_KEY, parsed_logs.map(e => JSON.stringify(e)));
+    //     });
+    // },
     addToLog(m: Message) {
         if (m == null || keywordLog.some(e => e.id === m.id))
             return;
@@ -503,7 +512,6 @@ export default definePlugin({
 
     deleteKeyword(id) {
         keywordLog = keywordLog.filter(e => e.id !== id);
-        DataStore.set(KEYWORD_LOG_KEY, keywordLog);
         this.onUpdate();
     },
 
@@ -520,7 +528,7 @@ export default definePlugin({
             <Tooltip text="Clear All">
                 {({ onMouseLeave, onMouseEnter }) => (
                     <div
-                        className={classes(buttonClass.button, sizeClass.tertiary, sizeClass.size32)}
+                        className={classes(tabClass.controlButton, sizeClass.button, sizeClass.tertiary, sizeClass.size32)}
                         onMouseLeave={onMouseLeave}
                         onMouseEnter={onMouseEnter}
                         onClick={() => {
@@ -569,7 +577,10 @@ export default definePlugin({
                     channel={channel}
                     onJump={onJump}
                     onFetch={() => null}
-                    onCloseMessage={this.deleteKeyword}
+                    onCloseMessage={(id: string) => {
+                        this.deleteKeyword(id);
+                        // this.discardMessage(id);
+                    }}
                     loadMore={() => null}
                     messages={tempLogs}
                     renderEmptyState={() => null}
