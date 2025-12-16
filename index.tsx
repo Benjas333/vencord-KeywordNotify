@@ -44,7 +44,7 @@ let interceptor: (e: any) => void;
 
 const recentMentionsPopoutClass = findByPropsLazy("recentMentionsPopout");
 const tabClass = findByPropsLazy("inboxTitle", "tab");
-const sizeClass = findByPropsLazy("size36");
+const buttonClass = findByPropsLazy("size36");
 // const buttonClass = findByPropsLazy("button", "rounded");
 
 const MenuHeader = findByCodeLazy(".getUnseenInviteCount())");
@@ -528,7 +528,7 @@ export default definePlugin({
             <Tooltip text="Clear All">
                 {({ onMouseLeave, onMouseEnter }) => (
                     <div
-                        className={classes(tabClass.controlButton, sizeClass.button, sizeClass.tertiary, sizeClass.size32)}
+                        className={classes(tabClass.controlButton, buttonClass.button, buttonClass.tertiary, buttonClass.size32)}
                         onMouseLeave={onMouseLeave}
                         onMouseEnter={onMouseEnter}
                         onClick={() => {
@@ -577,10 +577,7 @@ export default definePlugin({
                     channel={channel}
                     onJump={onJump}
                     onFetch={() => null}
-                    onCloseMessage={(id: string) => {
-                        this.deleteKeyword(id);
-                        // this.discardMessage(id);
-                    }}
+                    onCloseMessage={this.deleteKeyword}
                     loadMore={() => null}
                     messages={tempLogs}
                     renderEmptyState={() => null}
