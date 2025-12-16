@@ -44,7 +44,8 @@ let interceptor: (e: any) => void;
 
 const recentMentionsPopoutClass = findByPropsLazy("recentMentionsPopout");
 const tabClass = findByPropsLazy("inboxTitle", "tab");
-const buttonClass = findByPropsLazy("size36");
+const sizeClass = findByPropsLazy("size36");
+const buttonClass = findByPropsLazy("button", "rounded");
 
 const MenuHeader = findByCodeLazy(".getUnseenInviteCount())");
 const Popout = findByCodeLazy("getProTip", "canCloseAllMessages:");
@@ -347,7 +348,7 @@ export default definePlugin({
             find: "#{intl::UNREADS_TAB_LABEL})}",
             replacement: [
                 {
-                    match: /,(\i\?\(0,\i\.jsxs\)\(\i\.\i\i\.Item)/,
+                    match: /,(\i\?\(0,\i\.jsxs?\)\(\i\.\i\i\.Item)/,
                     replace: ",$self.keywordTabBar()$&"
                 },
                 {
@@ -357,7 +358,7 @@ export default definePlugin({
             ]
         },
         {
-            find: "location:\"RecentsPopout\"});",
+            find: "location:\"ForYou\"})",
             replacement: {
                 match: /:(\i)===\i\.\i\.MENTIONS\?\(0,.+?onJump:(\i)}\)/,
                 replace: ": $1 === 8 ? $self.tryKeywordMenu($2) $&"
@@ -502,6 +503,7 @@ export default definePlugin({
 
     deleteKeyword(id) {
         keywordLog = keywordLog.filter(e => e.id !== id);
+        DataStore.set(KEYWORD_LOG_KEY, keywordLog);
         this.onUpdate();
     },
 
@@ -518,7 +520,7 @@ export default definePlugin({
             <Tooltip text="Clear All">
                 {({ onMouseLeave, onMouseEnter }) => (
                     <div
-                        className={classes(tabClass.controlButton, buttonClass.button, buttonClass.tertiary, buttonClass.size32)}
+                        className={classes(buttonClass.button, sizeClass.tertiary, sizeClass.size32)}
                         onMouseLeave={onMouseLeave}
                         onMouseEnter={onMouseEnter}
                         onClick={() => {
@@ -562,7 +564,7 @@ export default definePlugin({
             <>
                 <Popout
                     className={classes(recentMentionsPopoutClass.recentMentionsPopout)}
-                    renderHeader={() => null}
+                    scrollerClassName={classes(recentMentionsPopoutClass.scroller)}
                     renderMessage={messageRender}
                     channel={channel}
                     onJump={onJump}
