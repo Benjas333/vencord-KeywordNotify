@@ -347,7 +347,7 @@ export default definePlugin({
             find: "#{intl::UNREADS_TAB_LABEL})}",
             replacement: [
                 {
-                    match: /,(\i\?\(0,\i\.jsxs\)\(\i\.\i\i\.Item)/,
+                    match: /,(\i\?\(0,\i\.jsxs?\)\(\i\.\i\i\.Item)/,
                     replace: ",$self.keywordTabBar()$&"
                 },
                 {
@@ -357,7 +357,7 @@ export default definePlugin({
             ]
         },
         {
-            find: "location:\"RecentsPopout\"});",
+            find: "location:\"ForYou\"});",
             replacement: {
                 match: /:(\i)===\i\.\i\.MENTIONS\?\(0,.+?onJump:(\i)}\)/,
                 replace: ": $1 === 8 ? $self.tryKeywordMenu($2) $&"
