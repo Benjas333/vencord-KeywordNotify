@@ -8,30 +8,30 @@ import "./style.css";
 
 import { DataStore } from "@api/index";
 import { definePluginSettings } from "@api/Settings";
-import { classNameFactory } from "@api/Styles";
+import { Button, TextButton } from "@components/Button";
 import { Flex } from "@components/Flex";
+import { FormSwitch } from "@components/FormSwitch";
+import { Heading } from "@components/Heading";
 import { DeleteIcon } from "@components/Icons";
+import { classNameFactory } from "@utils/css";
 import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
 import { useForceUpdater } from "@utils/react";
 import definePlugin, { OptionType } from "@utils/types";
 import { Message } from "@vencord/discord-types";
-import { findByCodeLazy, findByPropsLazy } from "@webpack";
+import { findByCodeLazy, findCssClassesLazy } from "@webpack";
 import {
-    Button,
     ChannelStore,
     FluxDispatcher,
-    Forms,
     Select,
     SelectedChannelStore,
-    Switch,
     TabBar,
     TextInput,
     Tooltip,
     UserStore,
     useState
 } from "@webpack/common";
-import type { PropsWithChildren } from "react";
+import type { JSX, PropsWithChildren } from "react";
 
 
 type IconProps = JSX.IntrinsicElements["svg"];
@@ -42,12 +42,10 @@ let keywordLog: Array<any> = [];
 let interceptor: (e: any) => void;
 
 
-const recentMentionsPopoutClass = findByPropsLazy("recentMentionsPopout");
-const tabClass = findByPropsLazy("inboxTitle", "tab");
-const buttonSizeClass = findByPropsLazy("size36");
-const buttonClass = findByPropsLazy("button", "rounded");
+const recentMentionsPopoutClass = findCssClassesLazy("recentMentionsPopout", "scroller");
+const tabClass = findCssClassesLazy("inboxTitle", "tab");
 
-const MenuHeader = findByCodeLazy(".getUnseenInviteCount())");
+// const MenuHeader = findByCodeLazy(".getUnseenInviteCount())");
 const Popout = findByCodeLazy("getProTip", "canCloseAllMessages:");
 const createMessageRecord = findByCodeLazy(".createFromServer(", ".isBlockedForMessage", "messageReference:");
 const KEYWORD_ENTRIES_KEY = "KeywordNotify_keywordEntries";
@@ -99,11 +97,13 @@ function highlightKeywords(str: string, entries: Array<KeywordEntry>) {
 
     const idx = str.indexOf(matches[0]);
 
-    return [
-        <span>{str.substring(0, idx)}</span>,
-        <span className="highlight">{matches[0]}</span>,
-        <span>{str.substring(idx + matches[0].length)}</span>
-    ];
+    return (
+        <>
+            <span>{str.substring(0, idx)}</span>
+            <span className="highlight">{matches[0]}</span>
+            <span>{str.substring(idx + matches[0].length)}</span>
+        </>
+    );
 }
 
 function Collapsible({ title, children }) {
@@ -111,10 +111,8 @@ function Collapsible({ title, children }) {
 
     return (
         <div>
-            <Button
+            <TextButton
                 onClick={() => setIsOpen(!isOpen)}
-                look={Button.Looks.BLANK}
-                size={Button.Sizes.ICON}
                 className={cl("collapsible")}>
                 <div style={{ display: "flex", alignItems: "center" }}>
                     <div style={{
@@ -122,9 +120,9 @@ function Collapsible({ title, children }) {
                         color: "var(--text-muted)",
                         paddingRight: "5px"
                     }}>{isOpen ? "▼" : "▶"}</div>
-                    <Forms.FormTitle tag="h4">{title}</Forms.FormTitle>
+                    <Heading tag="h4">{title}</Heading>
                 </div>
-            </Button>
+            </TextButton>
             {isOpen && children}
         </div>
     );
@@ -142,7 +140,7 @@ function ListedIds({ listIds, setListIds }) {
 
     const elements = values.map((currentValue: string, index: number) => {
         return (
-            <Flex flexDirection="row" style={{ marginBottom: "5px" }}>
+            <Flex key={index} flexDirection="row" style={{ marginBottom: "5px" }}>
                 <div style={{ flexGrow: 1 }}>
                     <TextInput
                         placeholder="ID"
@@ -157,8 +155,8 @@ function ListedIds({ listIds, setListIds }) {
                         setListIds(values);
                         update();
                     }}
-                    look={Button.Looks.BLANK}
-                    size={Button.Sizes.ICON}
+                    variant="none"
+                    size="iconOnly"
                     className={cl("delete")}>
                     <DeleteIcon/>
                 </Button>
@@ -233,22 +231,21 @@ function KeywordEntries() {
                         </div>
                         <Button
                             onClick={() => removeKeywordEntry(i, update)}
-                            look={Button.Looks.BLANK}
-                            size={Button.Sizes.ICON}
+                            variant="none"
+                            size="iconOnly"
                             className={cl("delete")}>
                             <DeleteIcon/>
                         </Button>
                     </Flex>
-                    <Switch
+                    <FormSwitch
                         value={values[i].ignoreCase}
                         onChange={() => {
                             setIgnoreCase(i, !values[i].ignoreCase);
                         }}
-                        style={{ marginTop: "0.5em", marginRight: "40px" }}
-                    >
-                        Ignore Case
-                    </Switch>
-                    <Forms.FormTitle tag="h5">Whitelist/Blacklist</Forms.FormTitle>
+                        title="Ignore Case"
+                        className={cl("ignoreCaseSwitch")}
+                    />
+                    <Heading tag="h5">Whitelist/Blacklist</Heading>
                     <Flex flexDirection="row">
                         <div style={{ flexGrow: 1 }}>
                             <ListedIds listIds={values[i].listIds} setListIds={e => setListIds(i, e)}/>
@@ -348,7 +345,7 @@ export default definePlugin({
             find: "#{intl::UNREADS_TAB_LABEL})}",
             replacement: [
                 {
-                    match: /,(\i\?\(0,\i\.jsxs?\)\(\i\.\i\i\.Item)/,
+                    match: /,(?:(?:\i&&)?\i\?\(0,\i\.jsxs?\)\(\i\.\i\.Item)/,
                     replace: ",$self.keywordTabBar()$&"
                 },
                 {
@@ -358,7 +355,7 @@ export default definePlugin({
             ]
         },
         {
-            find: "location:\"ForYou\"});",
+            find: 'location:"ForYou"});',
             replacement: {
                 match: /:(\i)===\i\.\i\.MENTIONS\?\(0,.+?onJump:(\i)}\)/,
                 replace: ": $1 === 8 ? $self.tryKeywordMenu($2) $&"
@@ -394,13 +391,19 @@ export default definePlugin({
         interceptor = (e: any) => {
             return this.modify(e);
         };
-        FluxDispatcher.addInterceptor(interceptor);
+        // FluxDispatcher.addInterceptor(interceptor);
+        FluxDispatcher.subscribe("MESSAGE_CREATE", interceptor);
+        FluxDispatcher.subscribe("MESSAGE_UPDATE", interceptor);
+        FluxDispatcher.subscribe("LOAD_MESSAGES_SUCCESS", interceptor);
     },
     stop() {
-        const index = FluxDispatcher._interceptors.indexOf(interceptor);
-        if (index > -1) {
-            FluxDispatcher._interceptors.splice(index, 1);
-        }
+        // const index = FluxDispatcher._interceptors.indexOf(interceptor);
+        // if (index > -1) {
+        //     FluxDispatcher._interceptors.splice(index, 1);
+        // }
+        FluxDispatcher.unsubscribe("MESSAGE_CREATE", interceptor);
+        FluxDispatcher.unsubscribe("MESSAGE_UPDATE", interceptor);
+        FluxDispatcher.unsubscribe("LOAD_MESSAGES_SUCCESS", interceptor);
     },
 
     applyKeywordEntries(m: Message) {
@@ -517,7 +520,7 @@ export default definePlugin({
 
     keywordTabBar() {
         return (
-            <TabBar.Item className={classes(tabClass.tab, tabClass.expanded)} id={8}>
+            <TabBar.Item className={classes(tabClass.tab)} id={8}>
                 Keywords
             </TabBar.Item>
         );
@@ -527,8 +530,9 @@ export default definePlugin({
         return (
             <Tooltip text="Clear All">
                 {({ onMouseLeave, onMouseEnter }) => (
-                    <div
-                        className={classes(buttonClass.button, buttonSizeClass.tertiary, buttonSizeClass.size32)}
+                    <Button
+                        variant="secondary"
+                        size="iconOnly"
                         onMouseLeave={onMouseLeave}
                         onMouseEnter={onMouseEnter}
                         onClick={() => {
@@ -537,7 +541,7 @@ export default definePlugin({
                             this.onUpdate();
                         }}>
                         <DoubleCheckmarkIcon/>
-                    </div>
+                    </Button>
                 )}
             </Tooltip>
         );
