@@ -391,19 +391,13 @@ export default definePlugin({
         interceptor = (e: any) => {
             return this.modify(e);
         };
-        // FluxDispatcher.addInterceptor(interceptor);
-        FluxDispatcher.subscribe("MESSAGE_CREATE", interceptor);
-        FluxDispatcher.subscribe("MESSAGE_UPDATE", interceptor);
-        FluxDispatcher.subscribe("LOAD_MESSAGES_SUCCESS", interceptor);
+        FluxDispatcher.addInterceptor(interceptor);
     },
     stop() {
-        // const index = FluxDispatcher._interceptors.indexOf(interceptor);
-        // if (index > -1) {
-        //     FluxDispatcher._interceptors.splice(index, 1);
-        // }
-        FluxDispatcher.unsubscribe("MESSAGE_CREATE", interceptor);
-        FluxDispatcher.unsubscribe("MESSAGE_UPDATE", interceptor);
-        FluxDispatcher.unsubscribe("LOAD_MESSAGES_SUCCESS", interceptor);
+        const index = FluxDispatcher._interceptors.indexOf(interceptor);
+        if (index > -1) {
+            FluxDispatcher._interceptors.splice(index, 1);
+        }
     },
 
     applyKeywordEntries(m: Message) {
@@ -500,6 +494,7 @@ export default definePlugin({
         try {
             thing = createMessageRecord(m);
         } catch (err) {
+            console.error(err);
             return;
         }
 
